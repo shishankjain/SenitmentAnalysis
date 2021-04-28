@@ -8,7 +8,7 @@ from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import  FileStorage
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='.\templates')
 app.config ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config ['UPLOAD_FOLDER'] = "G:\\NEWW\\SentimentAnalysis"
 db = SQLAlchemy(app)
