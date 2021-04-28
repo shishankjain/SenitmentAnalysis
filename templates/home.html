@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>ML API</title>
+  <link href='https://fonts.googleapis.com/css?family=Pacifico' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Arimo' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Hind:300' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Open+Sans+Condensed:300' rel='stylesheet' type='text/css'>
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  
+
+	<title>Sentiment Detector</title>
+	<!-- <link rel="stylesheet" type="text/css" href="../static/css/styles.css"> -->
+	<!--<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">-->
+</head>
+
+<body> 
+
+
+	<header>
+		<div id="brandname">
+			   Machine Learning App with Flask
+		</div>
+
+	</header>
+
+	<div class="container">
+        <h1>Sentiment Analysis</h1>
+		<form action="{{ url_for('predict')}}" method="POST" enctype="multipart/form-data">
+			<label for="upload"> Upload the CSV FILE</label>
+			<input type="file" name="upload">
+			<br>
+			<label for="name">Column Name for Reviews</label>
+			<input type="text" name="reviews" placeholder="Name">
+			<br>
+		<input type="submit" class="btn-info" value="predict">
+		
+	</form>
+</div>
+
+	
+	
+
+</body>
+</html>
