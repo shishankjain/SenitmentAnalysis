@@ -1,16 +1,26 @@
 # -*- coding: utf-8 -*-
-from flask import Flask,render_template,url_for,request, Markup
+from flask import Flask,render_template,url_for,request, Markup, send_file, make_response
 import pickle
+import seaborn as sns
 import pandas as pd
 import preprocessing
 import os
+import io
+import nltk
+import base64
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
 from werkzeug.datastructures import  FileStorage
-
+from nltk.sentiment.vader import SentimentIntensityAnalyzer 
+from io import BytesIO
+import matplotlib.pyplot as plt
+#from plot import do_plot
+sid = SentimentIntensityAnalyzer() 
+nltk.download('vader_lexicon')
 app = Flask(__name__)
 app.config ['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
-app.config ['UPLOAD_FOLDER'] = "G:\\NEWW\\SentimentAnalysis"
+app.config['SQLALCHEMY_BINDS'] = {'two' : 'sqlite:///site2.db'}
+app.config ['UPLOAD_FOLDER'] = "C:\\Users\\Shashank Jain\\Desktop\\mlproject\\project"
 db = SQLAlchemy(app)
 
 
@@ -25,6 +35,20 @@ class database(db.Model):
         self.negative=negative
         self.neutral=neutral
 
+
+class two(db.Model):
+    __bind_key__ = 'two'
+    id = db.Column(db.Integer, primary_key=True)
+    positivity=db.Column(db.Integer)
+    negativity=db.Column(db.Integer)
+    review=db.Column(db.String(1000))
+
+    def __init__(self, positivity,negativity,review):
+        self.positivity=positivity
+        self.negativity=negativity
+        self.review=review
+
+
 # load the model from disk
 clf = pickle.load(open('nb_clf.pkl', 'rb'))
 cv=pickle.load(open('tfidf_model.pkl','rb'))
@@ -32,10 +56,6 @@ cv=pickle.load(open('tfidf_model.pkl','rb'))
 total_negative=0
 total_positive=0
 total_neutral=0
-values=[total_positive,total_negative,total_neutral]
-labels=["POSITIVE","NEGATIVE","NEUTRAL"]
-colors=["#F7464A", "#46BFBD", "#FDB45C"]
-
 @app.route('/')
 def home():
 	return render_template('home.html')
@@ -46,13 +66,49 @@ def predict():
         f = request.files['upload']
         f.save(os.path.join(app.config['UPLOAD_FOLDER'],secure_filename(f.filename)))
         review1=request.form['reviews']
-        df=pd.read_csv(f.filename, usecols= [review1])
+        ratings=request.form['rating']
+        
+        df=pd.read_csv(f.filename, usecols= [review1,ratings])
+        df["sentiments"] = df[review1].apply(lambda x: sid.polarity_scores(x))
+        df = pd.concat([df.drop(['sentiments'], axis=1), df['sentiments'].apply(pd.Series)], axis=1)
+        for i in range(len(df)) :
+            one_review=df.loc[i, review1]
+            final_review=[one_review]
+            
+            data = preprocessing.text_Preprocessing(final_review)
+            string_data=data[0]
+            positive=(sid.polarity_scores(string_data)).get('pos')
+           
+            negative=(sid.polarity_scores(string_data)).get('neg')
+            print(positive)
+            data1=two(positive,negative,one_review)
+            db.session.add(data1)
+            db.session.commit()
+        #FOR DRAWING SENTIMENT DISTRIBUTION GRAPH
+        df[ratings] = df[ratings].apply(lambda x: 1 if x < 3 else 0)
+        
+        for x in [0, 1]:
+            subset = df[df[ratings] == x]
+        # Draw the density plot
+            if x == 0:
+                label = "Good reviews"
+            else:
+                label = "Bad reviews"
+            sns.distplot(subset['compound'], hist = False, label = label)
+
+        #saving plot into bytes object
+        img = BytesIO()
+        plt.legend()
+        plt.savefig(img, format='png')
+        plt.close()
+        img.seek(0)
+        plot_url = base64.b64encode(img.getvalue()).decode('utf8')
+        #Counting total negative total positive total neutral and marking polarity scores with every review
         count_positive=0
         count_negative=0
         count_neutral=0
         for i in range(len(df)) :
             one_review=df.loc[i, review1]
-            #print(one_review)
             final_review=[one_review]
             data = preprocessing.text_Preprocessing(final_review)
             vect = cv.transform(data)
@@ -71,11 +127,35 @@ def predict():
         db.session.commit()
 
 
-    return render_template('home.html')
+    return render_template('testhome.html',two=two.query.order_by(two.positivity.desc()).limit(10).all(),database=database.query.first(),three=two.query.order_by(two.negativity.desc()).limit(10).all(),
+    plot_url=plot_url)
 
+# @app.route('/plots', methods=['GET'])
+# def correlation_matrix():
+#     bytes_obj = do_plot()
+    
+#     return send_file(bytes_obj,
+#                      attachment_filename='plot.png',
+#                      mimetype='image/png')
 @app.route('/admin')
 def admin():
-    return render_template('testhome.html',database=database.query.first())
+    # f = request.files['upload']
+    # csv_name=f.filename
+    # print(csv_name)
+    # df=pd.read_csv(csv_name, usecols= [review1,ratings])
+    # for i in range(len(df)) :
+    #     one_review=df.loc[i, review1]
+    #     final_review=[one_review]
+    #     data = preprocessing.text_Preprocessing(final_review)
+    #     string_data=data[0]
+    #     positive=(sid.polarity_scores(string_data)).get('pos')
+    #     print(positive)
+    #     negative=(sid.polarity_scores(string_data)).get('neg')
+    #     data=database2(positive,negative,one_review)
+    #     db.session.add(data)
+    #     db.session.commit()
+    
+    return render_template('testhome.html',two=two.query.order_by(two.positivity.desc()).limit(10).all(),database=database.query.first(),three=two.query.order_by(two.negativity.desc()).limit(10).all())
 # @app.route('/analysis')
 # def analysis():
 #     pie_labels = labels
@@ -84,5 +164,5 @@ def admin():
 
 if __name__ == '__main__':
     db.create_all()
-    db.session.commit()
+    db.create_all(bind=['two'])
     app.run(debug=True)

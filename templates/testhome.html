@@ -1,6 +1,45 @@
 <!DOCTYPE html>
-<html lang = "en">
-   
+<html lang="en"><head><meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+   <style>
+      table {
+font-family: arial, sans-serif;
+border-collapse: collapse;
+width: 100%;
+
+}
+
+td, th {
+border: 3px solid #050505;
+text-align: left;
+padding: 8px;
+}
+
+tr:nth-child(even) {
+background-color: #dddddd;
+}
+.css-serial {
+counter-reset: serial-number;  
+}
+
+.css-serial td:first-child:before {
+counter-increment: serial-number; 
+content: counter(serial-number);  
+}
+legend{
+         text-align: center;
+         color:black;
+         background-color:
+         rgb(145, 238, 241);
+     }
+     body{
+             background-color: rgb(232, 252, 250);
+         }
+         th{
+           background-color: rgb(145, 238, 241);;
+         }
+
+   </style>
+</head>
    <body>
       
       <h3>
@@ -11,6 +50,47 @@
       <h3>POSITIVE REVIEWS = {{database.positive}}%</h3>
       <h3>NEGATIVE REVIEWS = {{database.negative}}%</h3>
       <h3>NEUTRAL REVIEWS = {{database.neutral}}%</h3>
+      <table class="css-serial">
+         <tbody>
+            <tr>
+               <th>Serial Number</th>
+               <th>Positive reviews</th>
+               <th>Sentiment Score</th>
+            </tr><tr>
+               
+               {% for data in two %}
+               <td></td>
+               <th>{{data.review}}</th>
+               <th>{{data.positivity}}</th>
+            </tr>
+         </tbody>
+         {% endfor %}
+      </table>
+
+
+      <br>
+      <table class="css-serial">
+         <tbody>
+            <tr>
+               <th>Serial Number</th>
+               <th>Negative reviews</th>
+               <th>Sentiment Score</th>
+            </tr>
+            <tr>
+               
+               {% for data in three %}
+               <td></td>
+               <th>{{data.review}}</th>
+               <th>{{data.negativity}}</th>
+               
+            </tr>
+         </tbody>
+         {% endfor %}
+      </table>
+      <div>
+                  
+         <img src="data:image/png;base64, {{ plot_url }}">
+</div>
       
    </body>
 </html>

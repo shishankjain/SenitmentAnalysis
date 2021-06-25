@@ -10,7 +10,7 @@
 <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   
 
-	<title>Sentiment Detector</title>
+	<title>Sentiment Analysis of Customer Reviews</title>
 	<!-- <link rel="stylesheet" type="text/css" href="../static/css/styles.css"> -->
 	<!--<link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">-->
 </head>
@@ -20,7 +20,7 @@
 
 	<header>
 		<div id="brandname">
-			   Machine Learning App with Flask
+			   Sentiment Analysis of Customer Reviews
 		</div>
 
 	</header>
@@ -33,6 +33,9 @@
 			<br>
 			<label for="name">Column Name for Reviews</label>
 			<input type="text" name="reviews" placeholder="Name">
+			<br>
+			<label for="name">Column Name for Ratings</label>
+			<input type="text" name="rating" placeholder="Name">
 			<br>
 		<input type="submit" class="btn-info" value="predict">
 		
