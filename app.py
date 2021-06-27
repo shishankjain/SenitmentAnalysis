@@ -7,6 +7,7 @@ import preprocessing
 import os
 import io
 import nltk
+import warnings
 import base64
 from flask_sqlalchemy import SQLAlchemy
 from werkzeug.utils import secure_filename
@@ -23,7 +24,7 @@ app.config['SQLALCHEMY_BINDS'] = {'two' : 'sqlite:///site2.db'}
 app.config ['UPLOAD_FOLDER'] = "C:\\Users\\Shashank Jain\\Desktop\\mlproject\\project"
 db = SQLAlchemy(app)
 
-
+warnings.filterwarnings("ignore")
 class database(db.Model):
     id=db.Column('user_id',db.Integer, primary_key=True)
     positive=db.Column(db.Integer)
@@ -130,37 +131,10 @@ def predict():
     return render_template('testhome.html',two=two.query.order_by(two.positivity.desc()).limit(10).all(),database=database.query.first(),three=two.query.order_by(two.negativity.desc()).limit(10).all(),
     plot_url=plot_url)
 
-# @app.route('/plots', methods=['GET'])
-# def correlation_matrix():
-#     bytes_obj = do_plot()
-    
-#     return send_file(bytes_obj,
-#                      attachment_filename='plot.png',
-#                      mimetype='image/png')
 @app.route('/admin')
 def admin():
-    # f = request.files['upload']
-    # csv_name=f.filename
-    # print(csv_name)
-    # df=pd.read_csv(csv_name, usecols= [review1,ratings])
-    # for i in range(len(df)) :
-    #     one_review=df.loc[i, review1]
-    #     final_review=[one_review]
-    #     data = preprocessing.text_Preprocessing(final_review)
-    #     string_data=data[0]
-    #     positive=(sid.polarity_scores(string_data)).get('pos')
-    #     print(positive)
-    #     negative=(sid.polarity_scores(string_data)).get('neg')
-    #     data=database2(positive,negative,one_review)
-    #     db.session.add(data)
-    #     db.session.commit()
-    
     return render_template('testhome.html',two=two.query.order_by(two.positivity.desc()).limit(10).all(),database=database.query.first(),three=two.query.order_by(two.negativity.desc()).limit(10).all())
-# @app.route('/analysis')
-# def analysis():
-#     pie_labels = labels
-#     pie_values = values
-#     return render_template('analysis.html', title='PIE CHART ANALYSIS', max=17000, set=zip(values, labels, colors))
+
 
 if __name__ == '__main__':
     db.create_all()
